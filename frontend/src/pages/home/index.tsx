@@ -8,9 +8,12 @@ import {
 } from "@nextui-org/react";
 import { useState } from "react";
 import { apiurl } from "@/context/apiURL";
-import AuthNav from "@/components/AuthNav";
+import AuthNav from "@/components/AttendeeNav";
+import { useUserContext } from "@/hooks/useUserContext";
 
 export default function Home() {
+  const { user } = useUserContext();
+  console.log("Home User: ", user);
   return (
     <main className="h-screen ">
       <AuthNav />
