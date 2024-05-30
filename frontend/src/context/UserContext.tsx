@@ -2,50 +2,56 @@ import { createContext, ReactNode, useEffect } from "react";
 import React from "react";
 import { apiurl } from "./apiURL";
 import {
-    GetServerSideProps,
-    GetServerSidePropsContext,
-    InferGetServerSidePropsType,
+  GetServerSideProps,
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
 } from "next";
 import { useRouter } from "next/router";
 
 export interface User {
-    id: string;
-    email: string;
-    name: string;
-    hashedPassword: string;
-    verified: boolean;
-    role: "ADMIN" | "ORGANIZER" | "ATTENDEE";
-    dob: Date;
+  id: string;
+  email: string;
+  name: string;
+  hashedPassword: string;
+  verified: boolean;
+  role: "ADMIN" | "ORGANIZER" | "ATTENDEE";
+  dob: Date;
+  createdAt: Date;
 }
 
 export interface UserAction {
-    type: "LOGIN" | "LOGOUT";
-    payload: User;
+  type: "LOGIN" | "LOGOUT";
+  payload: User;
 }
 
 export const UserContext = createContext<{ user: User | null } | null>(null);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = React.useState<User | null>(null);
-    const router = useRouter();
-    useEffect(() => {
-        console.log("Fetching User");
-        async function fetchUser() {
-            const res = await fetch(`${apiurl}/api/auth/getuser`, {
-                method: "GET",
-                credentials: "include",
-            });
-            if (res.status === 202) {
-                setUser((await res.json()).user);
-            } else if (res.status === 403) {
-                router.replace("/signin");
-            }
-        }
-        fetchUser();
-    }, [router.asPath]);
-    return (
-        <UserContext.Provider value={{ user: user }}>
-            {children}
-        </UserContext.Provider>
-    );
+  const [user, setUser] = React.useState<User | null>(null);
+  const router = useRouter();
+  useEffect(() => {
+    async function fetchUser() {
+      const res = await fetch(`${apiurl}/api/auth/getuser`, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (res.status === 202) {
+        const tempUser = (await res.json()).user;
+        setUser(tempUser);
+      } else if (
+        res.status === 403 &&
+        router.asPath !== "/signin" &&
+        router.asPath !== "/signup" &&
+        router.asPath !== "/"
+      ) {
+        router.replace("/signin");
+      }
+    }
+    fetchUser();
+  }, [router.asPath]);
+  return (
+    <UserContext.Provider value={{ user: user }}>
+      {children}
+    </UserContext.Provider>
+  );
 }
